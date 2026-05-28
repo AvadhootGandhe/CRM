@@ -1,0 +1,7 @@
+crm/
+.agents/
+__pycache__/
+*.pyc
+*.pyo
+steps.md
+support.db
