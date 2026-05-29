@@ -1,471 +1,1149 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>SupportDesk</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<style>
-  :root {
-    --bg: #0f1117;
-    --surface: #181c27;
-    --surface2: #1e2333;
-    --border: #2a3045;
-    --border-light: #323a54;
-    --accent: #6c8ef5;
-    --accent2: #5b77e0;
-    --accent-glow: rgba(108,142,245,.1);
-    --text: #e8ecf8;
-    --muted: #8891ad;
-    --open: #34d399;
-    --progress: #fbbf24;
-    --closed: #94a3b8;
-    --danger: #f87171;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,.2);
-    --shadow-md: 0 4px 12px rgba(0,0,0,.25);
-    --shadow-lg: 0 8px 30px rgba(0,0,0,.35);
-    --radius: 12px;
-    --radius-sm: 8px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
-  code, .mono { font-family: 'DM Mono', monospace; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SupportDesk</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ─── Design Tokens ────────────────────────────────────────────────────────── */
+    :root {
+      /* Backgrounds */
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --surface2: #f8f9fb;
+      --surface3: #eef0f4;
 
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; transition: background .2s; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+      /* Borders */
+      --border: #dfe1e6;
+      --border-light: #c1c7d0;
 
-  /* Layout */
-  #app { display: flex; flex-direction: column; min-height: 100vh; }
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    box-shadow: 0 1px 8px rgba(0,0,0,.2);
-    padding: 0 2rem;
-    height: 64px;
-    display: flex; align-items: center; justify-content: space-between;
-    position: sticky; top: 0; z-index: 50;
-  }
-  .logo { font-size: 1.2rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.6rem; letter-spacing: -0.01em; }
-  .logo-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); display: inline-block; box-shadow: 0 0 8px rgba(108,142,245,.4); }
-  nav { display: flex; gap: 0.4rem; align-items: center; }
-  .nav-btn {
-    padding: 0.5rem 1rem; border-radius: var(--radius-sm);
-    font-size: 0.875rem; font-weight: 500; cursor: pointer;
-    border: none; background: transparent; color: var(--muted);
-    transition: all .2s ease;
-  }
-  .nav-btn:hover { background: var(--surface2); color: var(--text); }
-  .nav-btn.active { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(108,142,245,.3); }
+      /* Atlassian blue palette */
+      --accent: #0052cc;
+      --accent2: #0065ff;
+      --accent-soft: #deebff;
+      --accent-glow: rgba(0, 82, 204, 0.08);
 
-  main { flex: 1; padding: 2.5rem 2rem; max-width: 1120px; margin: 0 auto; width: 100%; }
+      /* Text */
+      --text: #172b4d;
+      --text-sub: #42526e;
+      --muted: #6b778c;
 
-  /* Cards */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-    transition: box-shadow .2s ease;
-  }
-  .card-header {
-    padding: 1.125rem 1.5rem;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-  .card-body { padding: 1.5rem; }
+      /* Status colours */
+      --open: #006644;
+      --open-bg: #e3fcef;
+      --progress: #974f0c;
+      --prog-bg: #fffae6;
+      --closed: #42526e;
+      --closed-bg: #ebecf0;
 
-  /* Form */
-  .form-group { margin-bottom: 1.5rem; }
-  .split-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-bottom: 1rem; }
-  .form-actions { display: flex; gap: 0.85rem; justify-content: flex-end; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; }
-  .form-actions .btn { min-width: 116px; }
-  label {
-    display: block; font-size: 0.75rem; font-weight: 600;
-    color: var(--muted); text-transform: uppercase;
-    letter-spacing: .06em; margin-bottom: 0.5rem;
-  }
-  input, textarea, select {
-    width: 100%; padding: 0.75rem 1rem;
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); color: var(--text);
-    font-family: inherit; font-size: 0.9rem;
-    outline: none; transition: border-color .2s, box-shadow .2s;
-  }
-  input::placeholder, textarea::placeholder { color: var(--muted); opacity: 0.6; }
-  input:focus, textarea:focus, select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(108,142,245,.18);
-  }
-  textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
-  select option { background: var(--surface2); }
+      /* Semantic */
+      --danger: #de350b;
+      --danger-bg: #ffebe6;
+      --success: #006644;
 
-  /* Buttons */
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    gap: 0.45rem; padding: 0.625rem 1.25rem;
-    border-radius: var(--radius-sm); font-size: 0.875rem; font-weight: 600;
-    cursor: pointer; border: none; transition: all .2s ease;
-  }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: var(--accent2); box-shadow: 0 2px 10px rgba(108,142,245,.25); transform: translateY(-1px); }
-  .btn-primary:active { transform: translateY(0); }
-  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-  .btn-ghost:hover { background: var(--surface2); color: var(--text); border-color: var(--border-light); }
-  .btn-sm { padding: 0.45rem 0.9rem; font-size: 0.8125rem; }
-  .btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+      /* Shadows */
+      --shadow-sm: 0 1px 2px rgba(9, 30, 66, .08), 0 0 1px rgba(9, 30, 66, .06);
+      --shadow-md: 0 3px 10px rgba(9, 30, 66, .10), 0 0 1px rgba(9, 30, 66, .06);
+      --shadow-lg: 0 8px 24px rgba(9, 30, 66, .14), 0 0 1px rgba(9, 30, 66, .06);
 
-  /* Status badges */
-  .badge {
-    display: inline-flex; align-items: center; gap: 0.35rem;
-    padding: 0.25rem 0.75rem; border-radius: 999px;
-    font-size: 0.75rem; font-weight: 600; letter-spacing: .01em;
-  }
-  .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-  .badge-open { background: rgba(52,211,153,.12); color: var(--open); }
-  .badge-progress { background: rgba(251,191,36,.12); color: var(--progress); }
-  .badge-closed { background: rgba(148,163,184,.12); color: var(--closed); }
+      /* Shape */
+      --radius: 8px;
+      --radius-sm: 4px;
+      --radius-lg: 12px;
+    }
 
-  /* Ticket list table */
-  .ticket-table { width: 100%; border-collapse: collapse; }
-  .ticket-table th {
-    padding: 0.85rem 1.25rem; text-align: left;
-    font-size: 0.7rem; font-weight: 600; color: var(--muted);
-    text-transform: uppercase; letter-spacing: .06em;
-    border-bottom: 1px solid var(--border);
-  }
-  .ticket-table td {
-    padding: 0.9rem 1.25rem;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.875rem; vertical-align: middle;
-  }
-  .ticket-table tr:last-child td { border-bottom: none; }
-  .ticket-table tbody tr { cursor: pointer; transition: background .2s ease; }
-  .ticket-table tbody tr:hover { background: var(--surface2); }
-  .ticket-id { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--accent); font-weight: 500; }
-  .ticket-title { font-weight: 500; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ticket-email { color: var(--muted); font-size: 0.8rem; margin-top: 0.15rem; }
-  .date-text { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+    /* ─── Reset ─────────────────────────────────────────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  /* Search + filter bar */
-  .toolbar { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
-  .search-wrap { position: relative; flex: 1; min-width: 200px; }
-  .search-wrap input { padding-left: 2.5rem; }
-  .search-icon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
-  .filter-select { width: auto; min-width: 145px; }
+    /* ─── Base ──────────────────────────────────────────────────────────────────── */
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
 
-  /* Stats row */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem 1.5rem;
-    box-shadow: var(--shadow-sm);
-    transition: transform .2s ease, box-shadow .2s ease;
-  }
-  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-  .stat-num { font-size: 2rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
-  .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.4rem; font-weight: 500; letter-spacing: .02em; }
-  .stat-open .stat-num { color: var(--open); }
-  .stat-progress .stat-num { color: var(--progress); }
-  .stat-closed .stat-num { color: var(--closed); }
-  .stat-total .stat-num { color: var(--accent); }
+    code,
+    .mono {
+      font-family: 'DM Mono', monospace;
+    }
 
-  /* Detail view */
-  .detail-grid { display: grid; grid-template-columns: 1.9fr 1fr; gap: 1.75rem; }
-  @media (max-width: 768px) { .detail-grid { grid-template-columns: 1fr; } }
-  .detail-card { margin-bottom: 1.25rem; }
-  .card-body > * + * { margin-top: 1rem; }
-  .card-body textarea, .card-body select { width: 100%; }
-  .card-body textarea { min-height: 130px; }
-  .note-input-group { display: flex; flex-direction: column; gap: 0.85rem; }
-  .info-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0.75rem 0; border-bottom: 1px solid var(--border);
-    font-size: 0.875rem;
-  }
-  .info-row:last-child { border-bottom: none; }
-  .info-key { color: var(--muted); font-size: 0.8125rem; font-weight: 500; }
-  .description-box {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); padding: 1.125rem 1.25rem;
-    font-size: 0.875rem; line-height: 1.7; white-space: pre-wrap; color: var(--text);
-  }
+    /* ─── Scrollbar ──────────────────────────────────────────────────────────────── */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
 
-  /* Notes */
-  .note-item {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); padding: 1rem 1.125rem;
-    margin-bottom: 0.75rem; transition: border-color .2s;
-  }
-  .note-item:hover { border-color: var(--border-light); }
-  .note-text { font-size: 0.875rem; line-height: 1.6; white-space: pre-wrap; }
-  .note-meta {
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 0.75rem; margin-top: 0.75rem;
-  }
-  .note-time { font-size: 0.75rem; color: var(--muted); }
-  .note-delete-btn {
-    border: none; background: transparent; color: var(--muted);
-    width: 32px; height: 32px; border-radius: 10px;
-    cursor: pointer; font-size: 1rem; line-height: 1;
-    transition: background .2s, color .2s;
-  }
-  .note-delete-btn:hover { background: rgba(255,255,255,.08); color: var(--danger); }
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
 
-  /* Empty state */
-  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); }
-  .empty-state svg { margin: 0 auto 1.25rem; opacity: .35; }
-  .empty-state p { font-size: 0.9rem; line-height: 1.5; }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-light);
+      border-radius: 3px;
+      transition: background .2s;
+    }
 
-  /* Toast */
-  #toast {
-    position: fixed; bottom: 1.5rem; right: 1.5rem;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 0.9rem 1.35rem;
-    font-size: 0.875rem; font-weight: 500; color: var(--text);
-    box-shadow: var(--shadow-lg); backdrop-filter: blur(8px);
-    transform: translateY(80px); opacity: 0;
-    transition: transform .3s ease, opacity .3s ease;
-    z-index: 100; max-width: 340px;
-    display: flex; align-items: center; gap: 0.5rem;
-  }
-  #toast.show { transform: translateY(0); opacity: 1; }
-  #toast.success { border-color: var(--open); }
-  #toast.error { border-color: var(--danger); }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--muted);
+    }
 
-  /* Page sections */
-  .page { display: none; }
-  .page.active { display: block; animation: fadeIn .25s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    /* ─── App shell ──────────────────────────────────────────────────────────────── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
 
-  /* Back button */
-  .back-btn {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    color: var(--muted); font-size: 0.875rem; font-weight: 500;
-    cursor: pointer; margin-bottom: 1.5rem;
-    padding: 0.35rem 0; border: none; background: none;
-    transition: color .2s ease;
-  }
-  .back-btn:hover { color: var(--text); }
+    /* ─── Header ─────────────────────────────────────────────────────────────────── */
+    header {
+      background: var(--surface);
+      border-bottom: 2px solid var(--accent);
+      box-shadow: var(--shadow-sm);
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
 
-  /* Loading */
-  .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+    .logo {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      letter-spacing: -0.01em;
+    }
 
-  /* Detail header */
-  .detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem; }
-  .detail-header h2 { font-size: 1.3rem; font-weight: 700; margin-top: 0.35rem; line-height: 1.3; }
-  .detail-meta { display: flex; align-items: center; gap: 0.75rem; }
+    .logo-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+      flex-shrink: 0;
+    }
 
-  /* Responsive */
-  @media (max-width: 768px) {
-    main { padding: 1.5rem 1rem; }
-    header { padding: 0 1rem; height: 58px; }
-    .card-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
-    .toolbar { width: 100%; }
-    .search-wrap { min-width: 0; }
-    .filter-select { min-width: 120px; width: 100%; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
-    .stat-card { padding: 1rem 1.125rem; }
-    .stat-num { font-size: 1.6rem; }
-    .split-form-grid { grid-template-columns: 1fr; }
-    .form-actions { justify-content: stretch; }
-    .form-actions .btn { width: 100%; }
-  }
-  @media (max-width: 480px) {
-    main { padding: 1.25rem 0.75rem; }
-    .ticket-table th:nth-child(3), .ticket-table td:nth-child(3) { display: none; }
-    .ticket-table th:nth-child(5), .ticket-table td:nth-child(5) { display: none; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
-    .logo span { display: none; }
-    nav { gap: 0.25rem; }
-    .nav-btn { padding: 0.4rem 0.75rem; font-size: 0.8125rem; }
-  }
-</style>
+    /* ─── Nav ────────────────────────────────────────────────────────────────────── */
+    nav {
+      display: flex;
+      gap: 0.25rem;
+      align-items: center;
+    }
+
+    .nav-btn {
+      padding: 0.45rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      transition: background .15s ease, color .15s ease;
+    }
+
+    .nav-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .nav-btn.active {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .nav-btn.active:hover {
+      background: var(--accent2);
+      color: #fff;
+    }
+
+    /* ─── Main ───────────────────────────────────────────────────────────────────── */
+    main {
+      flex: 1;
+      padding: 2.25rem 2rem;
+      max-width: 1120px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ─── Cards ──────────────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow .2s ease;
+    }
+
+    .card-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      background: var(--surface2);
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .card-header span[style*="font-weight:600"],
+    .card-header span[style*="font-weight: 600"] {
+      color: var(--text);
+      font-size: 0.9375rem !important;
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+
+    .card-body>*+* {
+      margin-top: 1rem;
+    }
+
+    /* ─── Form ───────────────────────────────────────────────────────────────────── */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .split-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.125rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      align-items: center;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .form-actions .btn {
+      min-width: 116px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 0.4rem;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.625rem 0.875rem;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--muted);
+      opacity: 0.75;
+    }
+
+    input:hover,
+    textarea:hover,
+    select:hover {
+      border-color: var(--border-light);
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(0, 82, 204, .12);
+      background: #fff;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 110px;
+      line-height: 1.6;
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    select option {
+      background: #fff;
+      color: var(--text);
+    }
+
+    /* ─── Buttons ────────────────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.5625rem 1.125rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background .15s ease, box-shadow .15s ease, transform .12s ease;
+      letter-spacing: 0.01em;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent2);
+      box-shadow: 0 2px 8px rgba(0, 82, 204, .22);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .btn-ghost {
+      background: var(--surface);
+      color: var(--text-sub);
+      border: 2px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: var(--surface3);
+      color: var(--text);
+      border-color: var(--border-light);
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.875rem;
+      font-size: 0.8125rem;
+    }
+
+    .btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* ─── Status badges ──────────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 3px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .badge::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    .badge-open {
+      background: var(--open-bg);
+      color: var(--open);
+    }
+
+    .badge-progress {
+      background: var(--prog-bg);
+      color: var(--progress);
+    }
+
+    .badge-closed {
+      background: var(--closed-bg);
+      color: var(--closed);
+    }
+
+    /* ─── Ticket table ───────────────────────────────────────────────────────────── */
+    .ticket-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .ticket-table th {
+      padding: 0.75rem 1.25rem;
+      text-align: left;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      white-space: nowrap;
+    }
+
+    .ticket-table th:first-child {
+      border-radius: 0;
+    }
+
+    .ticket-table td {
+      padding: 0.875rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+      vertical-align: middle;
+      color: var(--text);
+    }
+
+    .ticket-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .ticket-table tbody tr {
+      cursor: pointer;
+      transition: background .12s ease;
+    }
+
+    .ticket-table tbody tr:hover {
+      background: var(--accent-soft);
+    }
+
+    .ticket-table tbody tr:hover .ticket-id {
+      color: var(--accent2);
+    }
+
+    .ticket-id {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.775rem;
+      color: var(--accent);
+      font-weight: 500;
+      background: var(--accent-soft);
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      transition: color .12s;
+    }
+
+    .ticket-title {
+      font-weight: 500;
+      max-width: 280px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
+    }
+
+    .ticket-email {
+      color: var(--muted);
+      font-size: 0.775rem;
+      margin-top: 0.15rem;
+    }
+
+    .date-text {
+      color: var(--muted);
+      font-size: 0.775rem;
+      white-space: nowrap;
+    }
+
+    /* ─── Toolbar ────────────────────────────────────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      gap: 0.65rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .search-wrap input {
+      padding-left: 2.4rem;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .filter-select {
+      width: auto;
+      min-width: 145px;
+    }
+
+    /* ─── Stats grid ─────────────────────────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: transform .2s ease, box-shadow .2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      border-radius: var(--radius) 0 0 var(--radius);
+    }
+
+    .stat-total::before {
+      background: var(--accent);
+    }
+
+    .stat-open::before {
+      background: #00875a;
+    }
+
+    .stat-progress::before {
+      background: #ff991f;
+    }
+
+    .stat-closed::before {
+      background: var(--muted);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    .stat-label {
+      font-size: 0.775rem;
+      color: var(--muted);
+      margin-top: 0.375rem;
+      font-weight: 500;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+
+    .stat-open .stat-num {
+      color: #00875a;
+    }
+
+    .stat-progress .stat-num {
+      color: #ff991f;
+    }
+
+    .stat-closed .stat-num {
+      color: var(--muted);
+    }
+
+    .stat-total .stat-num {
+      color: var(--accent);
+    }
+
+    /* ─── Detail view ────────────────────────────────────────────────────────────── */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1.9fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .detail-card {
+      margin-bottom: 1.125rem;
+    }
+
+    .card-body textarea,
+    .card-body select {
+      width: 100%;
+    }
+
+    .card-body textarea {
+      min-height: 130px;
+    }
+
+    .note-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+      gap: 0.5rem;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-key {
+      color: var(--muted);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .description-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem 1.125rem;
+      font-size: 0.875rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      color: var(--text);
+    }
+
+    /* ─── Notes ──────────────────────────────────────────────────────────────────── */
+    .note-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius-sm);
+      padding: 0.875rem 1rem;
+      margin-bottom: 0.75rem;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .note-item:hover {
+      border-color: var(--accent);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .note-text {
+      font-size: 0.875rem;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      color: var(--text);
+    }
+
+    .note-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.65rem;
+    }
+
+    .note-time {
+      font-size: 0.7375rem;
+      color: var(--muted);
+    }
+
+    .note-delete-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      transition: background .15s, color .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .note-delete-btn:hover {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    /* ─── Empty state ────────────────────────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }
+
+    .empty-state svg {
+      margin: 0 auto 1.125rem;
+      opacity: .3;
+    }
+
+    .empty-state p {
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    /* ─── Toast ──────────────────────────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.875rem 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: transform .28s cubic-bezier(.2, .8, .3, 1), opacity .28s ease;
+      z-index: 100;
+      max-width: 340px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    #toast.success {
+      border-left: 4px solid #00875a;
+    }
+
+    #toast.error {
+      border-left: 4px solid var(--danger);
+    }
+
+    /* ─── Pages ──────────────────────────────────────────────────────────────────── */
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+      animation: fadeUp .22s ease;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ─── Back button ────────────────────────────────────────────────────────────── */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--accent);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 1.25rem;
+      padding: 0.35rem 0.75rem 0.35rem 0.5rem;
+      border: 1px solid var(--accent-soft);
+      background: var(--accent-soft);
+      border-radius: var(--radius-sm);
+      transition: background .15s, border-color .15s;
+    }
+
+    .back-btn:hover {
+      background: #c2d7ff;
+      border-color: #b3ccff;
+    }
+
+    /* ─── Spinner ────────────────────────────────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .65s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ─── Detail header ──────────────────────────────────────────────────────────── */
+    .detail-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.375rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .detail-header h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-top: 0.35rem;
+      line-height: 1.3;
+      color: var(--text);
+    }
+
+    .detail-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    /* ─── Responsive ─────────────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      main {
+        padding: 1.5rem 1rem;
+      }
+
+      header {
+        padding: 0 1rem;
+        height: 56px;
+      }
+
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+
+      .toolbar {
+        width: 100%;
+      }
+
+      .search-wrap {
+        min-width: 0;
+      }
+
+      .filter-select {
+        min-width: 120px;
+        width: 100%;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+
+      .stat-card {
+        padding: 1rem 1.125rem;
+      }
+
+      .stat-num {
+        font-size: 1.6rem;
+      }
+
+      .split-form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-actions {
+        justify-content: stretch;
+      }
+
+      .form-actions .btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      main {
+        padding: 1.125rem 0.75rem;
+      }
+
+      .ticket-table th:nth-child(3),
+      .ticket-table td:nth-child(3) {
+        display: none;
+      }
+
+      .ticket-table th:nth-child(5),
+      .ticket-table td:nth-child(5) {
+        display: none;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem;
+      }
+
+      .logo span {
+        display: none;
+      }
+
+      nav {
+        gap: 0.2rem;
+      }
+
+      .nav-btn {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.8125rem;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div id="app">
+  <div id="app">
 
-  <header>
-    <div class="logo">
-      <span class="logo-dot"></span>
-      SupportDesk
-    </div>
-    <nav>
-      <button class="nav-btn active" onclick="showPage('list')">Tickets</button>
-      <button class="nav-btn" onclick="showPage('create')">+ New</button>
-    </nav>
-  </header>
-
-  <main>
-
-    <!-- LIST PAGE -->
-    <div class="page active" id="page-list">
-      <div class="stats-grid" id="stats-grid">
-        <div class="stat-card stat-total"><div class="stat-num" id="s-total">—</div><div class="stat-label">Total</div></div>
-        <div class="stat-card stat-open"><div class="stat-num" id="s-open">—</div><div class="stat-label">Open</div></div>
-        <div class="stat-card stat-progress"><div class="stat-num" id="s-progress">—</div><div class="stat-label">In Progress</div></div>
-        <div class="stat-card stat-closed"><div class="stat-num" id="s-closed">—</div><div class="stat-label">Closed</div></div>
+    <header>
+      <div class="logo">
+        <span class="logo-dot"></span>
+        SupportDesk
       </div>
+      <nav>
+        <button class="nav-btn active" onclick="showPage('list')">Tickets</button>
+        <button class="nav-btn" onclick="showPage('create')">+ New</button>
+      </nav>
+    </header>
 
-      <div class="card">
-        <div class="card-header">
-          <span style="font-weight:600;font-size:1.05rem">All Tickets</span>
-          <div class="toolbar">
-            <div class="search-wrap">
-              <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <input type="text" id="search-input" placeholder="Search tickets..." oninput="handleSearch()"/>
-            </div>
-            <select class="filter-select" id="status-filter" onchange="handleSearch()">
-              <option value="">All Statuses</option>
-              <option value="Open">Open</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Closed">Closed</option>
-            </select>
+    <main>
+
+      <!-- LIST PAGE -->
+      <div class="page active" id="page-list">
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card stat-total">
+            <div class="stat-num" id="s-total">—</div>
+            <div class="stat-label">Total</div>
+          </div>
+          <div class="stat-card stat-open">
+            <div class="stat-num" id="s-open">—</div>
+            <div class="stat-label">Open</div>
+          </div>
+          <div class="stat-card stat-progress">
+            <div class="stat-num" id="s-progress">—</div>
+            <div class="stat-label">In Progress</div>
+          </div>
+          <div class="stat-card stat-closed">
+            <div class="stat-num" id="s-closed">—</div>
+            <div class="stat-label">Closed</div>
           </div>
         </div>
-        <div id="ticket-list-wrap">
-          <div class="empty-state"><div class="spinner"></div><p style="margin-top:1rem">Loading tickets...</p></div>
-        </div>
-      </div>
-    </div>
 
-    <!-- CREATE PAGE -->
-    <div class="page" id="page-create">
-      <div style="max-width:620px; margin:0 auto;">
         <div class="card">
           <div class="card-header">
-            <span style="font-weight:600;font-size:1.05rem">Create New Ticket</span>
+            <span style="font-weight:600;font-size:1.05rem">All Tickets</span>
+            <div class="toolbar">
+              <div class="search-wrap">
+                <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+                <input type="text" id="search-input" placeholder="Search tickets..." oninput="handleSearch()" />
+              </div>
+              <select class="filter-select" id="status-filter" onchange="handleSearch()">
+                <option value="">All Statuses</option>
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </div>
           </div>
-          <div class="card-body">
-            <div class="split-form-grid">
-              <div class="form-group">
-                <label>Customer Name *</label>
-                <input type="text" id="f-name" placeholder="Jane Smith"/>
-              </div>
-              <div class="form-group">
-                <label>Customer Email *</label>
-                <input type="email" id="f-email" placeholder="jane@example.com"/>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Issue Title *</label>
-              <input type="text" id="f-subject" placeholder="Brief summary of the issue"/>
-            </div>
-            <div class="form-group">
-              <label>Description *</label>
-              <textarea id="f-description" placeholder="Describe the issue in detail..."></textarea>
-            </div>
-            <div class="form-actions">
-              <button class="btn btn-ghost" onclick="showPage('list')">Cancel</button>
-              <button class="btn btn-primary" id="submit-btn" onclick="submitTicket()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-                Create Ticket
-              </button>
+          <div id="ticket-list-wrap">
+            <div class="empty-state">
+              <div class="spinner"></div>
+              <p style="margin-top:1rem">Loading tickets...</p>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- DETAIL PAGE -->
-    <div class="page" id="page-detail">
-      <button class="back-btn" onclick="showPage('list')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
-        Back to tickets
-      </button>
-      <div id="detail-content">
-        <div class="empty-state"><div class="spinner"></div></div>
+      <!-- CREATE PAGE -->
+      <div class="page" id="page-create">
+        <div style="max-width:620px; margin:0 auto;">
+          <div class="card">
+            <div class="card-header">
+              <span style="font-weight:600;font-size:1.05rem">Create New Ticket</span>
+            </div>
+            <div class="card-body">
+              <div class="split-form-grid">
+                <div class="form-group">
+                  <label>Customer Name *</label>
+                  <input type="text" id="f-name" placeholder="Jane Smith" />
+                </div>
+                <div class="form-group">
+                  <label>Customer Email *</label>
+                  <input type="email" id="f-email" placeholder="jane@example.com" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Issue Title *</label>
+                <input type="text" id="f-subject" placeholder="Brief summary of the issue" />
+              </div>
+              <div class="form-group">
+                <label>Description *</label>
+                <textarea id="f-description" placeholder="Describe the issue in detail..."></textarea>
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-ghost" onclick="showPage('list')">Cancel</button>
+                <button class="btn btn-primary" id="submit-btn" onclick="submitTicket()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 5v14M5 12l7 7 7-7" />
+                  </svg>
+                  Create Ticket
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
 
-  </main>
-</div>
+      <!-- DETAIL PAGE -->
+      <div class="page" id="page-detail">
+        <button class="back-btn" onclick="showPage('list')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+          Back to tickets
+        </button>
+        <div id="detail-content">
+          <div class="empty-state">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
 
-<div id="toast"></div>
+    </main>
+  </div>
 
-<script>
-const API = '';
-let searchTimer = null;
-let allTickets = [];
-let activeTicketId = null;
+  <div id="toast"></div>
 
-// ── Navigation ──────────────────────────────────────────────────────────────
+  <script>
+    const API = '';
+    let searchTimer = null;
+    let allTickets = [];
+    let activeTicketId = null;
 
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  if (name === 'list') {
-    document.querySelectorAll('.nav-btn')[0].classList.add('active');
-    loadTickets();
-  } else if (name === 'create') {
-    document.querySelectorAll('.nav-btn')[1].classList.add('active');
-  }
-}
+    // ── Navigation ──────────────────────────────────────────────────────────────
 
-// ── Toast ────────────────────────────────────────────────────────────────────
+    function showPage(name) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+      if (name === 'list') {
+        document.querySelectorAll('.nav-btn')[0].classList.add('active');
+        loadTickets();
+      } else if (name === 'create') {
+        document.querySelectorAll('.nav-btn')[1].classList.add('active');
+      }
+    }
 
-function toast(msg, type = 'success') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'show ' + type;
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.className = '', 3000);
-}
+    // ── Toast ────────────────────────────────────────────────────────────────────
 
-// ── Stats ────────────────────────────────────────────────────────────────────
+    function toast(msg, type = 'success') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'show ' + type;
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.className = '', 3000);
+    }
 
-function updateStats(tickets) {
-  document.getElementById('s-total').textContent = tickets.length;
-  document.getElementById('s-open').textContent = tickets.filter(t => t.status === 'Open').length;
-  document.getElementById('s-progress').textContent = tickets.filter(t => t.status === 'In Progress').length;
-  document.getElementById('s-closed').textContent = tickets.filter(t => t.status === 'Closed').length;
-}
+    // ── Stats ────────────────────────────────────────────────────────────────────
 
-// ── Ticket list ───────────────────────────────────────────────────────────────
+    function updateStats(tickets) {
+      document.getElementById('s-total').textContent = tickets.length;
+      document.getElementById('s-open').textContent = tickets.filter(t => t.status === 'Open').length;
+      document.getElementById('s-progress').textContent = tickets.filter(t => t.status === 'In Progress').length;
+      document.getElementById('s-closed').textContent = tickets.filter(t => t.status === 'Closed').length;
+    }
 
-async function loadTickets() {
-  const search = document.getElementById('search-input').value;
-  const status = document.getElementById('status-filter').value;
-  let url = `${API}/api/tickets?`;
-  if (status) url += `status=${encodeURIComponent(status)}&`;
-  if (search) url += `search=${encodeURIComponent(search)}`;
+    // ── Ticket list ───────────────────────────────────────────────────────────────
 
-  const wrap = document.getElementById('ticket-list-wrap');
-  try {
-    const res = await fetch(url);
-    const tickets = await res.json();
-    allTickets = tickets;
-    if (!search && !status) updateStats(tickets);
-    renderTicketTable(tickets, wrap);
-  } catch (e) {
-    wrap.innerHTML = `<div class="empty-state"><p>Failed to load tickets. Is the server running?</p></div>`;
-  }
-}
+    async function loadTickets() {
+      const search = document.getElementById('search-input').value;
+      const status = document.getElementById('status-filter').value;
+      let url = `${API}/api/tickets?`;
+      if (status) url += `status=${encodeURIComponent(status)}&`;
+      if (search) url += `search=${encodeURIComponent(search)}`;
 
-function renderTicketTable(tickets, wrap) {
-  if (!tickets.length) {
-    wrap.innerHTML = `<div class="empty-state">
+      const wrap = document.getElementById('ticket-list-wrap');
+      try {
+        const res = await fetch(url);
+        const tickets = await res.json();
+        allTickets = tickets;
+        if (!search && !status) updateStats(tickets);
+        renderTicketTable(tickets, wrap);
+      } catch (e) {
+        wrap.innerHTML = `<div class="empty-state"><p>Failed to load tickets. Is the server running?</p></div>`;
+      }
+    }
+
+    function renderTicketTable(tickets, wrap) {
+      if (!tickets.length) {
+        wrap.innerHTML = `<div class="empty-state">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/></svg>
       <p>No tickets found.</p>
     </div>`;
-    return;
-  }
-  wrap.innerHTML = `<table class="ticket-table">
+        return;
+      }
+      wrap.innerHTML = `<table class="ticket-table">
     <thead><tr>
       <th>ID</th>
       <th>Customer</th>
@@ -487,79 +1165,79 @@ function renderTicketTable(tickets, wrap) {
         </tr>`).join('')}
     </tbody>
   </table>`;
-}
+    }
 
-function handleSearch() {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(loadTickets, 250);
-}
+    function handleSearch() {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(loadTickets, 250);
+    }
 
-// ── Create ticket ─────────────────────────────────────────────────────────────
+    // ── Create ticket ─────────────────────────────────────────────────────────────
 
-async function submitTicket() {
-  const name = document.getElementById('f-name').value.trim();
-  const email = document.getElementById('f-email').value.trim();
-  const subject = document.getElementById('f-subject').value.trim();
-  const description = document.getElementById('f-description').value.trim();
+    async function submitTicket() {
+      const name = document.getElementById('f-name').value.trim();
+      const email = document.getElementById('f-email').value.trim();
+      const subject = document.getElementById('f-subject').value.trim();
+      const description = document.getElementById('f-description').value.trim();
 
-  if (!name || !email || !subject || !description) {
-    toast('Please fill in all fields.', 'error'); return;
-  }
-  if (!email.includes('@')) { toast('Enter a valid email.', 'error'); return; }
+      if (!name || !email || !subject || !description) {
+        toast('Please fill in all fields.', 'error'); return;
+      }
+      if (!email.includes('@')) { toast('Enter a valid email.', 'error'); return; }
 
-  const btn = document.getElementById('submit-btn');
-  btn.disabled = true;
-  btn.innerHTML = `<span class="spinner"></span> Creating…`;
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span> Creating…`;
 
-  try {
-    const res = await fetch(`${API}/api/tickets`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({customer_name: name, customer_email: email, subject, description})
-    });
-    const data = await res.json();
-    toast(`Ticket ${data.ticket_id} created!`);
-    ['f-name','f-email','f-subject','f-description'].forEach(id => document.getElementById(id).value = '');
-    showPage('list');
-  } catch (e) {
-    toast('Failed to create ticket.', 'error');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg> Create Ticket`;
-  }
-}
+      try {
+        const res = await fetch(`${API}/api/tickets`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customer_name: name, customer_email: email, subject, description })
+        });
+        const data = await res.json();
+        toast(`Ticket ${data.ticket_id} created!`);
+        ['f-name', 'f-email', 'f-subject', 'f-description'].forEach(id => document.getElementById(id).value = '');
+        showPage('list');
+      } catch (e) {
+        toast('Failed to create ticket.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg> Create Ticket`;
+      }
+    }
 
-// ── Detail view ───────────────────────────────────────────────────────────────
+    // ── Detail view ───────────────────────────────────────────────────────────────
 
-async function openTicket(tid) {
-  activeTicketId = tid;
-  showPageRaw('detail');
-  document.getElementById('detail-content').innerHTML = `<div class="empty-state"><div class="spinner"></div></div>`;
+    async function openTicket(tid) {
+      activeTicketId = tid;
+      showPageRaw('detail');
+      document.getElementById('detail-content').innerHTML = `<div class="empty-state"><div class="spinner"></div></div>`;
 
-  try {
-    const res = await fetch(`${API}/api/tickets/${tid}`);
-    const t = await res.json();
-    renderDetail(t);
-  } catch (e) {
-    document.getElementById('detail-content').innerHTML = `<div class="empty-state"><p>Failed to load ticket.</p></div>`;
-  }
-}
+      try {
+        const res = await fetch(`${API}/api/tickets/${tid}`);
+        const t = await res.json();
+        renderDetail(t);
+      } catch (e) {
+        document.getElementById('detail-content').innerHTML = `<div class="empty-state"><p>Failed to load ticket.</p></div>`;
+      }
+    }
 
-function showPageRaw(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-}
+    function showPageRaw(name) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+    }
 
-function renderDetail(t) {
-  document.getElementById('detail-content').innerHTML = `
+    function renderDetail(t) {
+      document.getElementById('detail-content').innerHTML = `
     <div class="detail-header">
       <div>
         <div class="detail-meta">
-          <span class="mono" style="color:var(--accent); font-size:0.9rem;">${t.ticket_id}</span>
+          <span class="mono" style="color:var(--accent); font-size:0.85rem; background:var(--accent-soft); padding:0.2rem 0.5rem; border-radius:3px;">${t.ticket_id}</span>
           ${badge(t.status)}
         </div>
-        <h2 style="font-size:1.3rem; font-weight:700; margin-top:0.35rem; line-height:1.3;">${esc(t.subject)}</h2>
+        <h2 style="font-size:1.25rem; font-weight:700; margin-top:0.4rem; line-height:1.3;">${esc(t.subject)}</h2>
       </div>
     </div>
 
@@ -609,9 +1287,9 @@ function renderDetail(t) {
           <div class="card-header"><span style="font-weight:600">Update Status</span></div>
           <div class="card-body">
             <select id="status-select" style="margin-bottom:0.75rem;">
-              <option value="Open" ${t.status==='Open'?'selected':''}>Open</option>
-              <option value="In Progress" ${t.status==='In Progress'?'selected':''}>In Progress</option>
-              <option value="Closed" ${t.status==='Closed'?'selected':''}>Closed</option>
+              <option value="Open" ${t.status === 'Open' ? 'selected' : ''}>Open</option>
+              <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+              <option value="Closed" ${t.status === 'Closed' ? 'selected' : ''}>Closed</option>
             </select>
             <button class="btn btn-primary btn-sm" style="width:100%;" onclick="updateStatus('${t.ticket_id}')">Save Status</button>
           </div>
@@ -619,81 +1297,82 @@ function renderDetail(t) {
       </div>
     </div>
   `;
-}
+    }
 
-async function addNote(tid) {
-  const text = document.getElementById('note-input').value.trim();
-  if (!text) { toast('Note cannot be empty.', 'error'); return; }
+    async function addNote(tid) {
+      const text = document.getElementById('note-input').value.trim();
+      if (!text) { toast('Note cannot be empty.', 'error'); return; }
 
-  try {
-    await fetch(`${API}/api/tickets/${tid}`, {
-      method: 'PUT',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({note: text})
-    });
-    toast('Note added!');
-    openTicket(tid);
-  } catch (e) {
-    toast('Failed to add note.', 'error');
-  }
-}
+      try {
+        await fetch(`${API}/api/tickets/${tid}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ note: text })
+        });
+        toast('Note added!');
+        openTicket(tid);
+      } catch (e) {
+        toast('Failed to add note.', 'error');
+      }
+    }
 
-async function deleteNote(noteId) {
-  if (!activeTicketId) return;
-  try {
-    await fetch(`${API}/api/notes/${noteId}`, { method: 'DELETE' });
-    toast('Note deleted!');
-    openTicket(activeTicketId);
-  } catch (e) {
-    toast('Failed to delete note.', 'error');
-  }
-}
+    async function deleteNote(noteId) {
+      if (!activeTicketId) return;
+      try {
+        await fetch(`${API}/api/notes/${noteId}`, { method: 'DELETE' });
+        toast('Note deleted!');
+        openTicket(activeTicketId);
+      } catch (e) {
+        toast('Failed to delete note.', 'error');
+      }
+    }
 
-async function updateStatus(tid) {
-  const status = document.getElementById('status-select').value;
-  try {
-    await fetch(`${API}/api/tickets/${tid}`, {
-      method: 'PUT',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({status})
-    });
-    toast('Status updated!');
-    openTicket(tid);
-  } catch (e) {
-    toast('Failed to update status.', 'error');
-  }
-}
+    async function updateStatus(tid) {
+      const status = document.getElementById('status-select').value;
+      try {
+        await fetch(`${API}/api/tickets/${tid}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+        toast('Status updated!');
+        openTicket(tid);
+      } catch (e) {
+        toast('Failed to update status.', 'error');
+      }
+    }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function badge(status) {
-  const cls = status === 'Open' ? 'badge-open' : status === 'In Progress' ? 'badge-progress' : 'badge-closed';
-  return `<span class="badge ${cls}">${status}</span>`;
-}
+    function badge(status) {
+      const cls = status === 'Open' ? 'badge-open' : status === 'In Progress' ? 'badge-progress' : 'badge-closed';
+      return `<span class="badge ${cls}">${status}</span>`;
+    }
 
-function fmtDate(iso) {
-  if (!iso) return '—';
-  const d = new Date(iso + (iso.endsWith('Z') ? '' : 'Z'));
-  return d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) + ' ' +
-         d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
-}
+    function fmtDate(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso + (iso.endsWith('Z') ? '' : 'Z'));
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' +
+        d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
 
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+    function esc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
 
-function noteHtml(n) {
-  return `<div class="note-item">
+    function noteHtml(n) {
+      return `<div class="note-item">
     <div class="note-text">${esc(n.note_text)}</div>
     <div class="note-meta">
       <span class="note-time">${fmtDate(n.created_at)}</span>
       <button class="note-delete-btn" onclick="deleteNote(${n.id})" title="Delete note">×</button>
     </div>
   </div>`;
-}
+    }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-loadTickets();
-</script>
+    // ── Init ──────────────────────────────────────────────────────────────────────
+    loadTickets();
+  </script>
 </body>
+
 </html>
